@@ -372,22 +372,21 @@ def _query(session, server, method, parameters, timeout=DEFAULT_TIMEOUT, verify_
     api_endpoint = get_api_url(server)
     params = dict(id=-1, method=method, params=parameters or {})
     headers = get_headers()
-    with requests.Session() as session:
-        session.mount("https://", GeotabHTTPAdapter())
-        if cert:
-            session.cert = cert
-        try:
-            response = session.post(
-                api_endpoint,
-                data=json_serialize(params),
-                headers=headers,
-                allow_redirects=True,
-                timeout=timeout,
-                verify=verify_ssl,
-                proxies=proxies,
-            )
-        except Timeout as exc:
-            raise TimeoutException(server) from exc
+    session.mount("https://", GeotabHTTPAdapter())
+    if cert:
+        session.cert = cert
+    try:
+        response = session.post(
+            api_endpoint,
+            data=json_serialize(params),
+            headers=headers,
+            allow_redirects=True,
+            timeout=timeout,
+            verify=verify_ssl,
+            proxies=proxies,
+        )
+    except Timeout as exc:
+        raise TimeoutException(server) from exc
     response.raise_for_status()
     content_type = response.headers.get("Content-Type")
     if content_type and "application/json" not in content_type.lower():
