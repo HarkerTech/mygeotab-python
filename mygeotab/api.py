@@ -73,6 +73,7 @@ class API(object):
         self._proxies = proxies
         self.__reauthorize_count = 0
         self._cert = cert
+        self._session = requests.Session()
 
     @property
     def _server(self):
@@ -110,6 +111,7 @@ class API(object):
 
         try:
             result = _query(
+                self._session,
                 self._server,
                 method,
                 params,
@@ -242,6 +244,7 @@ class API(object):
 
         try:
             result = _query(
+                self._session,
                 self._server,
                 "Authenticate",
                 auth_data,
@@ -344,7 +347,7 @@ class GeotabHTTPAdapter(HTTPAdapter):
         )
 
 
-def _query(server, method, parameters, timeout=DEFAULT_TIMEOUT, verify_ssl=True, proxies=None, cert=None):
+def _query(session, server, method, parameters, timeout=DEFAULT_TIMEOUT, verify_ssl=True, proxies=None, cert=None):
     """Formats and performs the query against the API.
 
     :param server: The MyGeotab server.
@@ -430,7 +433,8 @@ def server_call(method, server, timeout=DEFAULT_TIMEOUT, verify_ssl=True, proxie
     if server is None:
         raise Exception("A server (eg. my3.geotab.com) must be specified")
     parameters = process_parameters(parameters)
-    return _query(server, method, parameters, timeout=timeout, verify_ssl=verify_ssl, proxies=proxies)
+    with requests.Session() as session:
+        return _query(session, server, method, parameters, timeout=timeout, verify_ssl=verify_ssl, proxies=proxies)
 
 
 def process_parameters(parameters):
